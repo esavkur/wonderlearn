@@ -10,6 +10,7 @@ import {
   useParams,
 } from "react-router-dom";
 import { Document, Page, pdfjs } from "react-pdf";
+import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import { marked } from "marked";
 import {
   ArrowLeft,
@@ -54,7 +55,7 @@ import "./styles.css";
   mkdir -p public
   cp node_modules/pdfjs-dist/build/pdf.worker.min.mjs public/pdf.worker.min.mjs
 */
-pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 const RUNTIME_CONFIG = window.__WONDERLEARN_CONFIG__ || {};
 

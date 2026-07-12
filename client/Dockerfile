@@ -1,5 +1,7 @@
 FROM node:20-alpine AS build
-RUN apk update && apk upgrade
+
+RUN apk update && apk upgrade --no-cache
+
 WORKDIR /app
 
 COPY package*.json ./
@@ -8,10 +10,7 @@ COPY scripts ./scripts
 RUN npm ci
 
 COPY . .
-RUN mkdir -p public \
-    && cp node_modules/pdfjs-dist/build/pdf.worker.min.mjs \
-          public/pdf.worker.min.mjs
-          
+
 ARG GIT_SHA=local
 ENV VITE_APP_VERSION=$GIT_SHA
 
