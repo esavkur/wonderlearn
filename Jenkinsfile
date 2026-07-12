@@ -71,18 +71,23 @@ pipeline {
         }
 
         stage('Gitleaks') {
-            steps {
-                sh '''
-                    mkdir -p reports
-                    docker run --rm \
-                      -v "$WORKSPACE:/repo" \
-                      zricethezav/gitleaks:v8.24.2 \
-                      detect --source=/repo --no-banner --redact \
-                      --report-format=json \
-                      --report-path=/repo/reports/gitleaks.json
-                '''
-            }
-        }
+    steps {
+        sh '''
+            mkdir -p reports
+
+            docker run --rm \
+              --volumes-from jenkins \
+              --workdir "$WORKSPACE" \
+              zricethezav/gitleaks:v8.24.2 \
+              detect \
+              --source="$WORKSPACE" \
+              --no-banner \
+              --redact \
+              --report-format=json \
+              --report-path="$WORKSPACE/reports/gitleaks.json"
+        '''
+    }
+}
 
         stage('SonarQube Analysis') {
             steps {
