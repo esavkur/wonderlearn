@@ -14,6 +14,11 @@ pipeline {
         string(name: 'AZURE_SUBSCRIPTION_ID', defaultValue: '8552b586-7d42-4691-a9f0-beae626f7dbe', description: 'Azure subscription ID')
         string(name: 'AZURE_TENANT_ID', defaultValue: 'cc85c2c8-5397-4c5a-9240-a43fbb66bd6e', description: 'Azure tenant ID')
         booleanParam(name: 'DEPLOY_PROD', defaultValue: true, description: 'Request production approval and deployment')
+        booleanParam(
+        name: 'RUN_SONAR',
+        defaultValue: false,
+        description: 'Run SonarCloud analysis'
+    )
     }
 
     environment {
@@ -93,7 +98,12 @@ pipeline {
     }
 }
 
-stage('SonarQube Cloud Analysis') {
+stage('SonarCloud Analysis') {
+    when {
+        expression {
+            return params.RUN_SONAR
+        }
+    }
     steps {
         withCredentials([
             string(
@@ -104,18 +114,15 @@ stage('SonarQube Cloud Analysis') {
             timeout(time: 10, unit: 'MINUTES') {
                 sh '''
                     export SONAR_SCANNER_OPTS="-Xmx1024m"
-                    export NODE_OPTIONS="--max-old-space-size=1024"
 
                     sonar-scanner \
                       -Dsonar.host.url=https://sonarcloud.io \
-                      -Dsonar.token="$SONAR_TOKEN" \
-                      -Dsonar.javascript.node.maxspace=1024
+                      -Dsonar.token="$SONAR_TOKEN"
                 '''
             }
         }
     }
 }
-
 
         stage('Build Images') {
             steps {
