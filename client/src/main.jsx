@@ -56,8 +56,66 @@ import "./styles.css";
 */
 pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
-const API = window.__WONDERLEARN_CONFIG__?.API_BASE_URL || import.meta.env.VITE_API_URL || "/api";
-const ASSET = import.meta.env.VITE_ASSET_URL || "";
+const RUNTIME_CONFIG = window.__WONDERLEARN_CONFIG__ || {};
+
+const API =
+  RUNTIME_CONFIG.API_BASE_URL ||
+  import.meta.env.VITE_API_URL ||
+  "/api";
+
+const API_ORIGIN = API.replace(/\/api\/?$/, "");
+
+function getDefaultBooksBaseUrl() {
+  const hostname = window.location.hostname;
+
+  if (hostname.includes("app-wonderlearn-frontend-prod-")) {
+    return "https://stwonderlearnprodsk85wl2.blob.core.windows.net/books";
+  }
+
+  if (hostname.includes("app-wonderlearn-frontend-dev-")) {
+    return "https://stwonderlearndevsk85wl2.blob.core.windows.net/books";
+  }
+
+  return "";
+}
+
+const BOOKS_BASE_URL =
+  RUNTIME_CONFIG.BOOKS_BASE_URL ||
+  import.meta.env.VITE_BOOKS_BASE_URL ||
+  getDefaultBooksBaseUrl();
+
+function resolveAssetUrl(value) {
+  if (!value) {
+    return "";
+  }
+
+  if (/^https?:\/\//i.test(value) || value.startsWith("blob:")) {
+    return value;
+  }
+
+  const normalizedPath = value.startsWith("/") ? value : `/${value}`;
+  return `${API_ORIGIN}${normalizedPath}`;
+}
+
+function resolvePdfUrl(value) {
+  if (!value) {
+    return "";
+  }
+
+  if (/^https?:\/\//i.test(value) || value.startsWith("blob:")) {
+    return value;
+  }
+
+  const relativePath = value
+    .replace(/^\/?books\//i, "")
+    .replace(/^\/+/, "");
+
+  if (BOOKS_BASE_URL) {
+    return `${BOOKS_BASE_URL.replace(/\/$/, "")}/${relativePath}`;
+  }
+
+  return resolveAssetUrl(value);
+}
 
 function getSession() {
   try {
@@ -385,7 +443,7 @@ function HomePage() {
           {dashboard?.progress?.slice(0, 4).map((progress) => (
             <article key={progress._id}>
               <img
-                src={`${ASSET}${progress.book.coverPath}`}
+                src={resolveAssetUrl(progress.book.coverPath)}
                 alt={`${progress.book.title} cover`}
               />
 
@@ -512,7 +570,7 @@ function LibraryPage() {
             <article key={book._id}>
               <div className="bookCover">
                 <img
-                  src={`${ASSET}${book.coverPath}`}
+                  src={resolveAssetUrl(book.coverPath)}
                   alt={`${book.title} cover`}
                 />
               </div>
@@ -624,9 +682,10 @@ function ReaderPage() {
       setPages(1);
 
       try {
-        console.log("Loading PDF from:", book.pdfPath);
+        const resolvedPdfUrl = resolvePdfUrl(book.pdfPath);
+        console.log("Loading PDF from:", resolvedPdfUrl);
 
-        const response = await fetch(book.pdfPath, {
+        const response = await fetch(resolvedPdfUrl, {
           method: "GET",
           cache: "no-store",
         });
@@ -1085,7 +1144,7 @@ function ReaderPage() {
     );
   }
 
-  const directPdfUrl = book.pdfPath;
+  const directPdfUrl = resolvePdfUrl(book.pdfPath);
 
   return (
     <Layout>
@@ -1097,7 +1156,7 @@ function ReaderPage() {
           </Link>
 
           <img
-            src={`${ASSET}${book.coverPath}`}
+            src={resolveAssetUrl(book.coverPath)}
             alt={`${book.title} cover`}
           />
 
@@ -1538,7 +1597,7 @@ function Dashboard() {
           {dashboard?.progress?.map((progress) => (
             <article key={progress._id}>
               <img
-                src={`${ASSET}${progress.book.coverPath}`}
+                src={resolveAssetUrl(progress.book.coverPath)}
                 alt={`${progress.book.title} cover`}
               />
 
