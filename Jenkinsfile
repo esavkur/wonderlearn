@@ -89,15 +89,16 @@ pipeline {
     }
 }
 
-        stage('SonarQube Analysis') {
+stage('SonarQube Analysis') {
     steps {
         sh '''
-        export SONAR_SCANNER_OPTS="-Xmx1024m"
-        export NODE_OPTIONS="--max-old-space-size=1024"
+            export SONAR_SCANNER_OPTS="-Xmx1024m"
+            export NODE_OPTIONS="--max-old-space-size=1024"
 
-        sonar-scanner \
-          -Dsonar.token=$SONAR_TOKEN \
-          -Dsonar.javascript.node.maxspace=1024
+            sonar-scanner \
+              -Dsonar.host.url=http://sonarqube:9000 \
+              -Dsonar.token="$SONAR_TOKEN" \
+              -Dsonar.javascript.node.maxspace=1024
         '''
     }
 }
