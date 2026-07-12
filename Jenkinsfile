@@ -7,7 +7,7 @@ pipeline {
   booleanParam(name:'DEPLOY_PROD', defaultValue:true)
  }
  environment {
-  AZURE_CREDS=credentials('azure-sp-wonderlearn')
+  AZURE_CREDS=credentials('AZURE_CREDENTIALS')
   SONAR_TOKEN=credentials('sonarqube-token')
  }
  stages {
