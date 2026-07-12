@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+*.log
+coverage/
+reports/*
+!reports/.gitkeep
+trivy-results/
+zap-results/
+server/public/books/
+.DS_Store
+.vscode/
+.idea/
+*.pem
+*.key

@@ -1,0 +1,24 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports: ["27017:27017"]
+    volumes: [wonderlearn-data:/data/db]
+
+  server:
+    build: ./server
+    restart: unless-stopped
+    env_file: ./server/.env
+    ports: ["4000:4000"]
+    depends_on: [mongo]
+    volumes:
+      - ./server/public/books:/app/public/books:ro
+
+  client:
+    build: ./client
+    restart: unless-stopped
+    ports: ["5173:80"]
+    depends_on: [server]
+
+volumes:
+  wonderlearn-data:
