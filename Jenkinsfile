@@ -138,12 +138,18 @@ stage('SonarQube Cloud Analysis') {
 
         stage('Azure Login and Push') {
     steps {
-        azureCLI(
-            principalCredentialId: 'AZURE_CREDENTIALS',
-            scriptType: 'bash',
-            scriptLocation: 'inlineScript',
-            inlineScript: '''
-                set -e
+        withCredentials([
+            azureServicePrincipal('AZURE_CREDENTIALS')
+        ]) {
+            sh '''
+                set +x
+
+                az login \
+                  --service-principal \
+                  --username "$AZURE_CLIENT_ID" \
+                  --password "$AZURE_CLIENT_SECRET" \
+                  --tenant "$AZURE_TENANT_ID" \
+                  --output none
 
                 az account set \
                   --subscription "$AZURE_SUBSCRIPTION_ID"
@@ -151,10 +157,12 @@ stage('SonarQube Cloud Analysis') {
                 az acr login \
                   --name "$ACR_NAME"
 
+                set -x
+
                 docker push "$FE_IMAGE"
                 docker push "$BE_IMAGE"
             '''
-        )
+        }
     }
 }
         stage('Deploy Dev') {
