@@ -17,10 +17,11 @@ pipeline {
     }
 
     environment {
-            AZURE_SUBSCRIPTION_ID = '8552b586-7d42-4691-a9f0-beae626f7dbe'
+     AZURE_SUBSCRIPTION_ID = '8552b586-7d42-4691-a9f0-beae626f7dbe'
     AZURE_TENANT_ID       = 'cc85c2c8-5397-4c5a-9240-a43fbb66bd6e'
-    ACR_NAME              = 'acrwonderlearnsk85wl2'
-    UNIQUE_SUFFIX         = 'sk85wl2'
+
+    ACR_NAME      = 'acrwonderlearnsk85wl2'
+    UNIQUE_SUFFIX = 'sk85wl2'
         SONAR_TOKEN = credentials('sonarqube-token')
     }
 
@@ -139,10 +140,20 @@ stage('SonarQube Cloud Analysis') {
         stage('Azure Login and Push') {
     steps {
         withCredentials([
-            azureServicePrincipal('AZURE_CREDENTIALS')
+            usernamePassword(
+                credentialsId: 'azure-sp-wonderlearn',
+                usernameVariable: 'AZURE_CLIENT_ID',
+                passwordVariable: 'AZURE_CLIENT_SECRET'
+            )
         ]) {
             sh '''
+                set -e
                 set +x
+
+                test -n "$AZURE_CLIENT_ID"
+                test -n "$AZURE_CLIENT_SECRET"
+                test -n "$AZURE_TENANT_ID"
+                test -n "$AZURE_SUBSCRIPTION_ID"
 
                 az login \
                   --service-principal \
