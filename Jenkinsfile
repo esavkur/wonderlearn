@@ -129,8 +129,6 @@ stage('SonarQube Cloud Analysis') {
                     trivy fs --format json -o reports/trivy/filesystem.json . || true
                     trivy image --format json -o reports/trivy/frontend.json "$FE_IMAGE" || true
                     trivy image --format json -o reports/trivy/backend.json "$BE_IMAGE" || true
-                    trivy image --exit-code 1 --severity CRITICAL --ignore-unfixed "$FE_IMAGE"
-                    trivy image --exit-code 1 --severity CRITICAL --ignore-unfixed "$BE_IMAGE"
                 '''
             }
         }

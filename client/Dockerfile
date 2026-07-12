@@ -1,5 +1,5 @@
 FROM node:20-alpine AS build
-
+RUN apk update && apk upgrade
 WORKDIR /app
 
 COPY package*.json ./
@@ -15,6 +15,7 @@ ENV VITE_APP_VERSION=$GIT_SHA
 RUN npm run build
 
 FROM nginx:1.27-alpine
+RUN apk update && apk upgrade
 RUN rm /etc/nginx/conf.d/default.conf && chown -R nginx:nginx /usr/share/nginx/html /var/cache/nginx /var/run
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY docker-entrypoint.sh /docker-entrypoint.d/40-runtime-config.sh
