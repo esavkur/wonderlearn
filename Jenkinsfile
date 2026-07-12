@@ -17,7 +17,10 @@ pipeline {
     }
 
     environment {
-        AZURE_CREDS = credentials('AZURE_CREDENTIALS')
+            AZURE_SUBSCRIPTION_ID = '8552b586-7d42-4691-a9f0-beae626f7dbe'
+    AZURE_TENANT_ID       = 'cc85c2c8-5397-4c5a-9240-a43fbb66bd6e'
+    ACR_NAME              = 'acrwonderlearnsk85wl2'
+    UNIQUE_SUFFIX         = 'sk85wl2'
         SONAR_TOKEN = credentials('sonarqube-token')
     }
 
@@ -134,22 +137,26 @@ stage('SonarQube Cloud Analysis') {
         }
 
         stage('Azure Login and Push') {
-            steps {
-                sh '''
-                    set +x
-                    az login --service-principal \
-                      --username "$AZURE_CREDS_USR" \
-                      --password "$AZURE_CREDS_PSW" \
-                      --tenant "$AZURE_TENANT_ID" >/dev/null
-                    az account set --subscription "$AZURE_SUBSCRIPTION_ID"
-                    az acr login --name "$ACR_NAME"
-                    set -x
-                    docker push "$FE_IMAGE"
-                    docker push "$BE_IMAGE"
-                '''
-            }
-        }
+    steps {
+        azureCLI(
+            principalCredentialId: 'AZURE_CREDENTIALS',
+            scriptType: 'bash',
+            scriptLocation: 'inlineScript',
+            inlineScript: '''
+                set -e
 
+                az account set \
+                  --subscription "$AZURE_SUBSCRIPTION_ID"
+
+                az acr login \
+                  --name "$ACR_NAME"
+
+                docker push "$FE_IMAGE"
+                docker push "$BE_IMAGE"
+            '''
+        )
+    }
+}
         stage('Deploy Dev') {
             steps {
                 sh '''
