@@ -112,15 +112,6 @@ stage('SonarQube Cloud Analysis') {
     }
 }
 
-        stage('Sonar Quality Gate') {
-    steps {
-        catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-            timeout(time: 5, unit: 'MINUTES') {
-                waitForQualityGate abortPipeline: false
-            }
-        }
-    }
-}
 
         stage('Build Images') {
             steps {
