@@ -1,10 +1,17 @@
 FROM node:20-alpine AS build
+
 WORKDIR /app
+
 COPY package*.json ./
+COPY scripts ./scripts
+
 RUN npm ci
+
 COPY . .
+
 ARG GIT_SHA=local
 ENV VITE_APP_VERSION=$GIT_SHA
+
 RUN npm run build
 
 FROM nginx:1.27-alpine
