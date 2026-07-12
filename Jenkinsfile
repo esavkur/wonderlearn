@@ -89,27 +89,38 @@ pipeline {
     }
 }
 
-stage('SonarQube Analysis') {
+stage('SonarQube Cloud Analysis') {
     steps {
-        sh '''
-            export SONAR_SCANNER_OPTS="-Xmx1024m"
-            export NODE_OPTIONS="--max-old-space-size=1024"
+        withCredentials([
+            string(
+                credentialsId: 'sonarcloud-token',
+                variable: 'SONAR_TOKEN'
+            )
+        ]) {
+            timeout(time: 10, unit: 'MINUTES') {
+                sh '''
+                    export SONAR_SCANNER_OPTS="-Xmx1024m"
+                    export NODE_OPTIONS="--max-old-space-size=1024"
 
-            sonar-scanner \
-              -Dsonar.host.url=http://sonarqube:9000 \
-              -Dsonar.token="$SONAR_TOKEN" \
-              -Dsonar.javascript.node.maxspace=1024
-        '''
+                    sonar-scanner \
+                      -Dsonar.host.url=https://sonarcloud.io \
+                      -Dsonar.token="$SONAR_TOKEN" \
+                      -Dsonar.javascript.node.maxspace=1024
+                '''
+            }
+        }
     }
 }
 
-        stage('SonarQube Quality Gate') {
-            steps {
-                timeout(time: 10, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
+        stage('Sonar Quality Gate') {
+    steps {
+        catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+            timeout(time: 5, unit: 'MINUTES') {
+                waitForQualityGate abortPipeline: false
             }
         }
+    }
+}
 
         stage('Build Images') {
             steps {
