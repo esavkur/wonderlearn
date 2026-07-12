@@ -90,12 +90,17 @@ pipeline {
 }
 
         stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('sonarqube') {
-                    sh 'sonar-scanner -Dsonar.token="$SONAR_TOKEN"'
-                }
-            }
-        }
+    steps {
+        sh '''
+        export SONAR_SCANNER_OPTS="-Xmx1024m"
+        export NODE_OPTIONS="--max-old-space-size=1024"
+
+        sonar-scanner \
+          -Dsonar.token=$SONAR_TOKEN \
+          -Dsonar.javascript.node.maxspace=1024
+        '''
+    }
+}
 
         stage('SonarQube Quality Gate') {
             steps {
